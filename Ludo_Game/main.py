@@ -158,10 +158,12 @@ class Coin:
                 color_reached += 1
 
         if color_reached == 3:
-            tkinter.messagebox.showinfo('Game Over', '\n\n1. {}\n\n2. {}\n\n3. {}'.format(*position))
-        else:
+            response = tkinter.messagebox.askyesno('Game Over', 
+                '\n\n1. {}\n\n2. {}\n\n3. {}\n\nWould you like to play again?'.format(*position))
+            if response:
+                reset_game()
             return False
-        return True
+        return False
     #this below code will check whether the player will be able to attack other token or not
     def can_attack(self, idx):
         max_pad = 0
@@ -398,6 +400,41 @@ def on_closingroot():
     if tkinter.messagebox.askokcancel("Quit", "Do you want to quit the game?"):
         root.destroy() 
 
+# Add reset functionality
+def reset_game():
+    global colors, turn, position
+    # Reset position list
+    position = []
+    
+    # Clear existing coins
+    for color_group in colors:
+        for coin in color_group:
+            ludo.get_canvas().delete(coin.img)
+    
+    # Reset colors list
+    colors = []
+    colors.append(align(2.1*Board.SQUARE_SIZE, 2.1*Board.SQUARE_SIZE, color='green', path_list=path.green_path, flag=0))
+    colors.append(align(2.1*Board.SQUARE_SIZE, 11.1*Board.SQUARE_SIZE, color='red', path_list=path.red_path, flag=1))
+    colors.append(align(11.1*Board.SQUARE_SIZE, 11.1*Board.SQUARE_SIZE, color='blue', path_list=path.blue_path, flag=2))
+    colors.append(align(11.1*Board.SQUARE_SIZE, 2.1*Board.SQUARE_SIZE, color='yellow', path_list=path.yellow_path, flag=3))
+    
+    # Reset dice
+    Dice.roll = []
+    Dice.chance = 0
+    
+    # Reset player turn
+    for i in range(4):
+        for j in range(4):
+            colors[i][j].change_state(0)
+    
+    # Reset labels
+    next_label = tk.Label(ludo.get_frame(), text='{} turn'.format(turn[0]), font=(None, 20), width=30, height=3,
+                        borderwidth=3, relief=tk.SUNKEN)
+    next_label.place(x=100, y=100)
+    
+    roll_label = tk.Label(ludo.get_frame(), text='ROLL PLEASE', font=(None, 20), width=30, height=3, borderwidth=3, relief=tk.RAISED)
+    roll_label.place(x=100, y=200)
+
 #this is where the set up of tkinter window is handled
 players = []
 root = tk.Tk()
@@ -423,6 +460,10 @@ for i in range(4):
 
 button = tk.Button(ludo.get_frame(), text='ROLL', command=Dice.start, width=20, height=2)
 button.place(x=210, y=470)
+
+# Add New Game button
+new_game_button = tk.Button(ludo.get_frame(), text='NEW GAME', command=reset_game, width=20, height=2)
+new_game_button.place(x=210, y=520)
 
 #this is the message that will be displayed whenever the user will start the game
 welcome_msg = ''' Welcome Champs let's get into the game of LUDO :-) \n
