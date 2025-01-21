@@ -1,18 +1,23 @@
-#basic library imports
+import os
 import tkinter as tk
 import tkinter.messagebox
 from time import sleep
 from random import choice
 from PIL import ImageTk, Image
-import os
+
+# Get the directory containing the current script
+GAME_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_DIR = os.path.join(GAME_DIR, 'assets')
 
 from settings import *
 from board import *
 
-# Define the assets path relative to the main.py location
-ASSETS_DIR = os.path.join(os.path.dirname(__file__), 'assets')
 
 class Coin:
+
+    def __init__(self, master, x, y, color, path_list, flag):
+        self.canvas = master
+        self.curr_x = x
 
     def __init__(self, master, x, y, color, path_list, flag):
         self.canvas = master
@@ -24,7 +29,8 @@ class Coin:
         self.curr_index = -1
         #A picture that works with Tkinter. Anywhere that Tkinter expects an image object can use this. 
         #When an image is an RGBA picture, pixels with an alpha value of 0 are considered translucent.
-        self.coin = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, f'{color}.png')))
+        image_path = os.path.join(ASSETS_DIR, f'{color}.png')
+        self.coin = ImageTk.PhotoImage(Image.open(image_path))
         self.img =  self.canvas.create_image(x, y, anchor=tk.NW, image=self.coin)
         self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
         self.disable = True
@@ -158,12 +164,10 @@ class Coin:
                 color_reached += 1
 
         if color_reached == 3:
-            response = tkinter.messagebox.askyesno('Game Over', 
-                '\n\n1. {}\n\n2. {}\n\n3. {}\n\nWould you like to play again?'.format(*position))
-            if response:
-                reset_game()
+            tkinter.messagebox.showinfo('Game Over', '\n\n1. {}\n\n2. {}\n\n3. {}'.format(*position))
+        else:
             return False
-        return False
+        return True
     #this below code will check whether the player will be able to attack other token or not
     def can_attack(self, idx):
         max_pad = 0
@@ -229,15 +233,16 @@ class Dice:
             cls.append_state = False
         #here we made a tuple of 6 images of dice and any one will be selected in a random manner
         dice = {
-            1: os.path.join(ASSETS_DIR, 'de1.png'),
-            2: os.path.join(ASSETS_DIR, 'de2.png'),
-            3: os.path.join(ASSETS_DIR, 'de3.png'),
-            4: os.path.join(ASSETS_DIR, 'de4.png'),
-            5: os.path.join(ASSETS_DIR, 'de5.png'),
-            6: os.path.join(ASSETS_DIR, 'de6.png'),
+            1: 'de1.png',
+            2: 'de2.png',
+            3: 'de3.png',
+            4: 'de4.png',
+            5: 'de5.png',
+            6: 'de6.png',
         }.get(cls.roll[-1], None)
 
-        img = ImageTk.PhotoImage(Image.open(dice))
+        dice_path = os.path.join(ASSETS_DIR, dice)
+        img = ImageTk.PhotoImage(Image.open(dice_path))
         image_label = tk.Label(ludo.get_frame(), width=100, height=100, image=img, bg=Color.CYAN)
         image_label.image = img
         image_label.place(x=250, y=300)
@@ -286,7 +291,8 @@ class Dice:
             roll_label = tk.Label(ludo.get_frame(), text='ROLL PLEASE', font=(None, 20), width=30, height=3, borderwidth=3, relief=tk.RAISED)
             roll_label.place(x=100, y=200)
 
-            img = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, 'trans.png')))
+            trans_path = os.path.join(ASSETS_DIR, 'trans.png')
+            img = ImageTk.PhotoImage(Image.open(trans_path))
             image_label = tk.Label(ludo.get_frame(), width=100, height=100, image=img, bg=Color.CYAN)
             image_label.image = img
             image_label.place(x=250, y=300)
@@ -319,9 +325,7 @@ class Dice:
             if check_1 == 4 or check_1 + check_2 == 4:
                 Dice.update_panel()
         else:
-            if check_2 == 4:
-                Dice.update_panel()
-
+            Dice.update_panel()
 
 def align(x, y, color, path_list, flag):
     container = []
@@ -400,9 +404,60 @@ def on_closingroot():
     if tkinter.messagebox.askokcancel("Quit", "Do you want to quit the game?"):
         root.destroy() 
 
-# Add reset functionality
+#this is where the set up of tkinter window is handled
+players = []
+root = tk.Tk()
+width = root.winfo_screenwidth()
+height = root.winfo_screenheight()
+root.geometry('{}x{}'.format(width, height))
+root.title('Ludo')
+
+ludo = LudoBoard(root)
+ludo.create()
+
+turn = ['Green', 'Red', 'Blue', 'Yellow']
+position = []
+colors = []
+colors.append(align(2.1*Board.SQUARE_SIZE, 2.1*Board.SQUARE_SIZE, color='green', path_list=path.green_path, flag=0))
+colors.append(align(2.1*Board.SQUARE_SIZE, 11.1*Board.SQUARE_SIZE, color='red', path_list=path.red_path, flag=1))
+colors.append(align(11.1*Board.SQUARE_SIZE, 11.1*Board.SQUARE_SIZE, color='blue', path_list=path.blue_path, flag=2))
+colors.append(align(11.1*Board.SQUARE_SIZE, 2.1*Board.SQUARE_SIZE, color='yellow', path_list=path.yellow_path, flag=3))
+
+for i in range(4):
+    for j in range(4):
+        colors[i][j].change_state(0)
+
+button = tk.Button(ludo.get_frame(), text='ROLL', command=Dice.start, width=20, height=2)
+button.place(x=210, y=470)
+
+#this is the message that will be displayed whenever the user will start the game
+welcome_msg = ''' Welcome Champs let's get into the game of LUDO :-) \n
+        Rules of the game:
+- The players roll a six-sided die in turns and can advance any of their coins on the track by the number of steps as displayed by the dice.\n
+- Once you get a six in a dice throw, you have to roll the dice again, and must use all scores while making the final selection of what coins to move where.\n
+- If you get a six three times in a row, your throws are reset and you will lose that chance.\n
+- The coin can advance in the home run only if it reaches exactly inside the home pocket, or moves closer to it through the home run. 
+For example, if the coin is four squares away from the home pocket and the player rolls a five, he must apply the throw to some other coin. \
+However, if you roll a two, you can advance the coin by two squares and then it rests there until the next move.\n 
+    
+top.geometry('600x600')
+    Enjoy the game and have fun.
+        # Best of luck #
+'''
+#we used the Tkinter's messagebox.showinfo() function to render the message stored in the above variable
+tkinter.messagebox.showinfo('Welcome', welcome_msg)
+
+#once the rules window is displayed, a new window to set the names of the player will be opened
+top = tk.Toplevel(root)
+top.geometry('600x600')
+top.title('Nickname')
+top.protocol("WM_DELETE_WINDOW", on_closing)
+root.protocol("WM_DELETE_WINDOW", on_closingroot)
+create_enterpage()
+root.mainloop()
+
 def reset_game():
-    global colors, turn, position
+    global colors, turn, position, Dice
     # Reset position list
     position = []
     
@@ -434,58 +489,8 @@ def reset_game():
     
     roll_label = tk.Label(ludo.get_frame(), text='ROLL PLEASE', font=(None, 20), width=30, height=3, borderwidth=3, relief=tk.RAISED)
     roll_label.place(x=100, y=200)
-
-#this is where the set up of tkinter window is handled
-players = []
-root = tk.Tk()
-width = root.winfo_screenwidth()
-height = root.winfo_screenheight()
-root.geometry('{}x{}'.format(width, height))
-root.title('Ludo')
-
-ludo = LudoBoard(root)
-ludo.create()
-
-turn = ['Green', 'Red', 'Blue', 'Yellow']
-position = []
-colors = []
-colors.append(align(2.1*Board.SQUARE_SIZE, 2.1*Board.SQUARE_SIZE, color='green', path_list=path.green_path, flag=0))
-colors.append(align(2.1*Board.SQUARE_SIZE, 11.1*Board.SQUARE_SIZE, color='red', path_list=path.red_path, flag=1))
-colors.append(align(11.1*Board.SQUARE_SIZE, 11.1*Board.SQUARE_SIZE, color='blue', path_list=path.blue_path, flag=2))
-colors.append(align(11.1*Board.SQUARE_SIZE, 2.1*Board.SQUARE_SIZE, color='yellow', path_list=path.yellow_path, flag=3))
-
-for i in range(4):
-    for j in range(4):
-        colors[i][j].change_state(0)
-
-button = tk.Button(ludo.get_frame(), text='ROLL', command=Dice.start, width=20, height=2)
-button.place(x=210, y=470)
-
-# Add New Game button
-new_game_button = tk.Button(ludo.get_frame(), text='NEW GAME', command=reset_game, width=20, height=2)
-new_game_button.place(x=210, y=520)
-
-#this is the message that will be displayed whenever the user will start the game
-welcome_msg = ''' Welcome Champs let's get into the game of LUDO :-) \n
-        Rules of the game:
-- The players roll a six-sided die in turns and can advance any of their coins on the track by the number of steps as displayed by the dice.\n
-- Once you get a six in a dice throw, you have to roll the dice again, and must use all scores while making the final selection of what coins to move where.\n
-- If you get a six three times in a row, your throws are reset and you will lose that chance.\n
-- The coin can advance in the home run only if it reaches exactly inside the home pocket, or moves closer to it through the home run. 
-For example, if the coin is four squares away from the home pocket and the player rolls a five, he must apply the throw to some other coin. \
-However, if you roll a two, you can advance the coin by two squares and then it rests there until the next move.\n 
     
-    Enjoy the game and have fun.
-        # Best of luck #
-'''
-#we used the Tkinter's messagebox.showinfo() function to render the message stored in the above variable
-tkinter.messagebox.showinfo('Welcome', welcome_msg)
-
-#once the rules window is displayed, a new window to set the names of the player will be opened
-top = tk.Toplevel(root)
-top.geometry('600x600')
-top.title('Nickname')
-top.protocol("WM_DELETE_WINDOW", on_closing)
-root.protocol("WM_DELETE_WINDOW", on_closingroot)
-create_enterpage()
-root.mainloop()
+    img = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, 'trans.png')))
+    image_label = tk.Label(ludo.get_frame(), width=100, height=100, image=img, bg=Color.CYAN)
+    image_label.image = img  # Keep a reference!
+    image_label.place(x=250, y=300)
