@@ -4,10 +4,13 @@ import tkinter.messagebox
 from time import sleep
 from random import choice
 from PIL import ImageTk, Image
+import os
 
 from settings import *
 from board import *
 
+# Define the assets path relative to the main.py location
+ASSETS_DIR = os.path.join(os.path.dirname(__file__), 'assets')
 
 class Coin:
 
@@ -21,7 +24,7 @@ class Coin:
         self.curr_index = -1
         #A picture that works with Tkinter. Anywhere that Tkinter expects an image object can use this. 
         #When an image is an RGBA picture, pixels with an alpha value of 0 are considered translucent.
-        self.coin = ImageTk.PhotoImage(Image.open('./assets/{}.png'.format(color)))
+        self.coin = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, f'{color}.png')))
         self.img =  self.canvas.create_image(x, y, anchor=tk.NW, image=self.coin)
         self.canvas.tag_bind(self.img, '<1>', self.moveCoin)
         self.disable = True
@@ -140,7 +143,7 @@ class Coin:
             if goti.win:
                 reached += 1
 
-        return reached is 4
+        return reached == 4
         
     #this is to check whether the Ludo Game in Python is over or not
     def is_gameover(self):
@@ -151,10 +154,10 @@ class Coin:
             for color in colors[i]:
                 if color.win:
                     game += 1
-            if game is 4:
+            if game == 4:
                 color_reached += 1
 
-        if color_reached is 3:
+        if color_reached == 3:
             tkinter.messagebox.showinfo('Game Over', '\n\n1. {}\n\n2. {}\n\n3. {}'.format(*position))
         else:
             return False
@@ -182,11 +185,11 @@ class Coin:
                         count += 1
                         jdx = j
                         
-                if count is not 0 and count is not 2:
+                if count != 0 and count != 2:
                     self.pad_x = max_pad + 4
                     return (True, i, jdx)
 
-        if count_a is not 0:
+        if count_a != 0:
             self.pad_x = max_pad + 4
         else:
             self.pad_x = 0
@@ -224,15 +227,15 @@ class Dice:
             cls.append_state = False
         #here we made a tuple of 6 images of dice and any one will be selected in a random manner
         dice = {
-            1: 'de1.png',
-            2: 'de2.png',
-            3: 'de3.png',
-            4: 'de4.png',
-            5: 'de5.png',
-            6: 'de6.png',
+            1: os.path.join(ASSETS_DIR, 'de1.png'),
+            2: os.path.join(ASSETS_DIR, 'de2.png'),
+            3: os.path.join(ASSETS_DIR, 'de3.png'),
+            4: os.path.join(ASSETS_DIR, 'de4.png'),
+            5: os.path.join(ASSETS_DIR, 'de5.png'),
+            6: os.path.join(ASSETS_DIR, 'de6.png'),
         }.get(cls.roll[-1], None)
 
-        img = ImageTk.PhotoImage(Image.open('./assets/{}'.format(dice)))
+        img = ImageTk.PhotoImage(Image.open(dice))
         image_label = tk.Label(ludo.get_frame(), width=100, height=100, image=img, bg=Color.CYAN)
         image_label.image = img
         image_label.place(x=250, y=300)
@@ -281,7 +284,7 @@ class Dice:
             roll_label = tk.Label(ludo.get_frame(), text='ROLL PLEASE', font=(None, 20), width=30, height=3, borderwidth=3, relief=tk.RAISED)
             roll_label.place(x=100, y=200)
 
-            img = ImageTk.PhotoImage(Image.open('./assets/trans.png'))
+            img = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, 'trans.png')))
             image_label = tk.Label(ludo.get_frame(), width=100, height=100, image=img, bg=Color.CYAN)
             image_label.image = img
             image_label.place(x=250, y=300)
@@ -311,10 +314,10 @@ class Dice:
                     check_2 += 1
 
         if 6 not in cls.roll:
-            if check_1 is 4 or check_1 + check_2 is 4:
+            if check_1 == 4 or check_1 + check_2 == 4:
                 Dice.update_panel()
         else:
-            if check_2 is 4:
+            if check_2 == 4:
                 Dice.update_panel()
 
 
@@ -367,20 +370,20 @@ def create_enterpage():
     global greenimg, redimg, blueimg, yellowimg
     
     #this is the code to render the four different images of our dice
-    greenimg = ImageTk.PhotoImage(Image.open('./assets/green2.png'))
+    greenimg = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, 'green2.png')))
     green_label = tk.Label(top, image=greenimg)
     #in order to set the postion of various token on nickname window we used x and y
     green_label.place(x=107, y=130)
 
-    redimg = ImageTk.PhotoImage(Image.open('./assets/red2.png'))
+    redimg = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, 'red2.png')))
     red_label = tk.Label(top, image=redimg)
     red_label.place(x=107, y=310)
 
-    blueimg = ImageTk.PhotoImage(Image.open('./assets/blue2.png'))
+    blueimg = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, 'blue2.png')))
     blue_label = tk.Label(top, image=blueimg)
     blue_label.place(x=407, y=310)
 
-    yellowimg = ImageTk.PhotoImage(Image.open('./assets/yellow2.png'))
+    yellowimg = ImageTk.PhotoImage(Image.open(os.path.join(ASSETS_DIR, 'yellow2.png')))
     yellow_label = tk.Label(top, image=yellowimg)
     yellow_label.place(x=407, y=130)
 
