@@ -1,3 +1,7 @@
+const { JSDOM } = require("jsdom");
+const { window } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`);
+const { document } = window;
+
 const cards = document.querySelectorAll(".card");
 let matched = 0;
 let cardOne, cardTwo;
