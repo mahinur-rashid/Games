@@ -31,7 +31,11 @@ A classic Tetris game implementation using Python and Pygame.
    ```
    pip install pygame
    ```
-3. Clone or download the repository
+3. Clone or download the repository:
+   ```
+   git clone https://github.com/yourusername/tetris-game.git
+   cd tetris-game
+   ```
 
 ## Project Structure
 
